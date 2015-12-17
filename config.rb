@@ -60,13 +60,18 @@ set :js_dir, 'javascripts'
 
 set :images_dir, 'images'
 
+proxy "/events.json", "/api/events.json", :locals => { :events => data.events }, :ignore => true
+proxy "/speakers.json", "/api/speakers.json", :locals => { :speakers => data.speakers }, :ignore => true
+
 data.events.each do |name, metadata|
   proxy "/events/#{metadata.slug}/index.html", "/event.html", :locals => { :name => name, :metadata => metadata , :videos => data.videos[name]}, :ignore => true
+  proxy "/events/#{metadata.slug}.json", "/api/event.json", :locals => { :name => name, :metadata => metadata , :videos => data.videos[name]}, :ignore => true
 end
 
 data.speakers.each do |name, metadata|
   videos = data.videos.map { |k,v| [k,v.select { |video| video.speakers.include? name }] }.select { |k, v| v.count > 0 }
   proxy(speaker_page(name) + "/index.html", "/speaker.html", :locals => { :name => name, :speaker => metadata , :videos => videos}, :ignore => true)
+  proxy(speaker_page(name) + ".json", "/api/speaker.json", :locals => { :name => name, :speaker => metadata , :videos => videos}, :ignore => true)
 end
 
 # Build-specific configuration
